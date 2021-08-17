@@ -1,0 +1,110 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+    previewFeatures = ["referentialActions"]
+}
+
+model User {
+  id           String     @id @default(uuid())
+  name         String     @db.VarChar(200)
+  username     String     @unique @db.VarChar(50)
+  email        String     @unique
+  password     String
+  presentation String?
+  gender       Gender?
+  comment      Comment[]
+  postLikes    PostLike[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  commentResponses CommentResponse[]
+  avatar           Avatar?
+}
+
+model Publication {
+  id           String     @id @default(uuid())
+  description         String     @db.VarChar(200)
+  location     String[]
+  latLng       String?
+  comments     Comment[]
+  likes    PostLike[]
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  items        Items[]
+}
+
+model Comment {
+  id               String            @id @default(uuid())
+  publication      Publication?      @relation(fields: [publicationId], references: [id])
+  publicationId    String
+  user             User?             @relation(fields: [userId], references: [id],onDelete: Cascade)
+  userId           String
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  commentResponses CommentResponse[]
+}
+
+model CommentResponse {
+  id        String   @id @default(uuid())
+  comment   Comment? @relation(fields: [commentId], references: [id])
+  commentId String
+  user      User?    @relation(fields: [userId], references: [id],onDelete: Cascade)
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PostLike {
+  id            String       @id @default(uuid())
+  publication   Publication? @relation(fields: [publicationId], references: [id])
+  publicationId String
+  user          User?        @relation(fields: [userId], references: [id],onDelete: Cascade)
+  userId        String
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model Avatar {
+  id        String   @id @default(uuid())
+  deleteUrl String
+  url       String
+  thumb     String
+  medium    String
+  user      User     @relation(fields: [userId], references: [id],onDelete: Cascade)
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Items {
+  id            String       @id @default(uuid())
+  deleteUrl     String?
+  url           String
+  thumb         String?
+  medium        String?
+  type          String
+  publication   Publication? @relation(fields: [publicationId], references: [id])
+  publicationId String
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+model session {
+  id        String   @id @default(uuid())
+  sessionId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Gender {
+  HOMBRE
+  MUJER
+  OTROS
+}
